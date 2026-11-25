@@ -1,45 +1,131 @@
-# Decomposition (fill this in BEFORE writing code)
-
-Commit this file on its own before any code. Write plainly. If you use AI to help you think, that's fine, but the final text must be what *you* understand. We will ask you about it.
-
 ## 1. The problem in my own words
 
-In 3-5 sentences, say what you are being asked to build. Don't use a term you couldn't explain to a friend.
+Long chats may be difficult to read for a third person , finding important details and context through many messages will be time consuming , instead of the human reading through hundreds of messages , we build a chat analyzer which can answer questions based on the chat we provide. 
 
 ## 2. What I noticed in the data
 
-Read `data/team_chat.txt` completely. List **at least 5 specific things** in the chat that would make it hard for a system to answer questions correctly. For each, quote the message (with date and time) and explain why it's hard.
-
-| # | What I noticed (quote + timestamp) | Why it makes answering hard |
-|---|---|---|
-| 1 | | |
-| 2 | | |
-| 3 | | |
-| 4 | | |
-| 5 | | |
+  i> Chat is consisted of two language format -> English and Hinglish , in the same sentence which can confuse the AI as certain words are same in English and Hinglish but has different meaning 
+         "05/10/26, 8:11 PM - Kabir: search aur chat dono? thoda zyada hai but ok"  ,  'hai' can be interpreted in two different way , same for 'main'.
+  
+  ii> 5 people conversing at the same time but context may be different for each , which can lead to confusion on what a person may be responding to.
+         "09/10/26, 10:42 PM - Priya: ye screenshot hai, filters abhi nahi hain
+          09/10/26, 10:55 PM - Rohan: nice. clean hai
+          09/10/26, 10:56 PM - Aarav: color thoda dull hai but fine
+          12/10/26, 7:30 PM - Meera: Reminder: report due 3 days before demo day. Demo day 4 Dec so report 1 Dec
+          12/10/26, 7:32 PM - Aarav: noted
+          12/10/26, 7:33 PM - Kabir: mujhe lagta hai hum late chal rahe hain"
+          
+  iii>  Images are present and are key part of the chat but is not available , hence making out the relevance of the image is entirely upon the replies that it gets.
+         "24/10/26, 11:27 PM - Rohan: <Media omitted>
+          24/10/26, 11:27 PM - Rohan: ye schema ka diagram, v1"
+          
+  iv> Context keeps on changing , therefore the AI has to go through all of the chat to declare a final result
+          "05/10/26, 8:10 PM - Meera: payments Razorpay se karungi
+           20/10/26, 8:16 PM - Aarav: agreed. final decision: no Razorpay, UPI QR manual
+           02/11/26, 8:49 PM - Aarav: haan. Razorpay test mode final. QR wala scrap."
+           
+  v>
 
 ## 3. The simplest thing that could work, and how it would fail
 
-Describe the dumbest reasonable approach (maybe 3 lines). Then write **3 questions about this chat that it would get wrong**, and say exactly why.
+Simplest thing would be to upload the file to AI and get answers, which would not be optimal as it needs to have a context on the matter  and when dealing with large quantity of chat, it can get expensive. 
 
 ## 4. Break it into sub-problems
 
-List the smaller problems the whole task is made of. For each one write:
+smaller problems would be to manage the chat dataset in a way so that it can be used economically without wasting tokens. Using a RAG pipeline or something similar can make it better.
 
-- **Input:** what goes in
-- **Output:** what comes out
-- **How I'll know it's working:** a check you can actually run
-
-Include a diagram of how the pieces connect. ASCII art or a photo of a hand-drawn sketch is fine.
+                  WHATSAPP TXT EXPORT
+                          |
+                          v
+              +-----------------------+
+              |   PYTHON PREPROCESSOR  |
+              |                       |
+              | - Parse messages      |
+              | - Extract timestamps  |
+              | - Extract senders     |
+              +-----------------------+
+                          |
+                          v
+              +-----------------------+
+              |       CHUNKING        |
+              |                       |
+              | - Group messages      |
+              | - Preserve context    |
+              | - Add metadata        |
+              +-----------------------+
+                          |
+                          v
+              +-----------------------+
+              |    EMBEDDING MODEL    |
+              |                       |
+              |  Text -> Vectors      |
+              +-----------------------+
+                          |
+                          v
+              +-----------------------+
+              |     VECTOR STORE      |
+              |                       |
+              |       ChromaDB        |
+              |                       |
+              | - Embeddings          |
+              | - Original text       |
+              | - Metadata            |
+              +-----------------------+
+                          |
+                          |
+             USER ASKS A QUESTION
+                          |
+                          v
+              +-----------------------+
+              |   QUESTION EMBEDDING  |
+              |                       |
+              | Convert query to      |
+              | numerical vector      |
+              +-----------------------+
+                          |
+                          v
+              +-----------------------+
+              |     RETRIEVAL         |
+              |                       |
+              | - Similarity search  |
+              | - Find relevant      |
+              |   message chunks      |
+              +-----------------------+
+                          |
+                          v
+              +-----------------------+
+              |    CONTEXT BUILDER    |
+              |                       |
+              | Question + Retrieved |
+              | messages + metadata   |
+              +-----------------------+
+                          |
+                          v
+              +-----------------------+
+              |       GPT API         |
+              |                       |
+              | - Understand context |
+              | - Reason             |
+              | - Generate answer    |
+              +-----------------------+
+                          |
+                          v
+              +-----------------------+
+              |     FINAL ANSWER      |
+              |                       |
+              | - Answer             |
+              | - Dates               |
+              | - Supporting messages |
+              +-----------------------+
 
 ## 5. What I don't know yet
 
-List the things you'd need to learn or find out. For each, write how you plan to find out (docs, experiment, ask an AI and then verify it, etc.).
+in-depth knowledge of RAG architecture which i am planning on studying through youtube.
 
 ## 6. Build order
 
-What is the smallest end-to-end slice you'll build first (even if it's bad)? What comes second? Why that order?
+first build a system which connects an AI agent through an API and through which i can do basic tasks. Then implement the RAG pipeline to make it better.
 
 ## 7. Where I'll use AI, and where I won't
 
-Be specific. For example, "I'll let AI write the file parser, but I'll design the data model myself because ___."
+AI agent will be used for reasoning and forming the final result. Apart from that i will be using it for RAG architecture and i would like to do the system design by myself as i have attended a hackathon on AI agents where i learned how RAG can be implemented and the need for it.
